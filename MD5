@@ -1,4 +1,4 @@
-54410b5bb5064e2ddbfc114c59f4600e *DESCRIPTION
+172892242e4eb9b44ed88e3e50219253 *DESCRIPTION
 3e67fa739ca50cc5f5caa6be4e06fa27 *NAMESPACE
 5fd33fa5dcc68f5a7125bade2e43e303 *NEWS.md
 85ceed04004d339c05fb67be0cce4a34 *R/RcppExports.R
@@ -8,7 +8,7 @@ ce5ef04e4c5799b93d7ecf2e327763e7 *R/estimation.R
 255e81f931babb228d57692913b5a64f *R/util.R
 0b2615fed6c891da8a4d139480884a2a *R/ycevo-package.R
 d737325d9ea868651f491e7d55bf156b *R/ycevo.R
-794467f9a626c0917cefc87f829241c2 *README.md
+c0348f44fe34ec125103ed8cd64e0b7c *README.md
 56b406544730c36ace8db878c5ebad06 *data/USbonds.rda
 e524047530735459ff347beebf5112c0 *man/USbonds.Rd
 295e3cc9a1763eff29e1ad18612a222e *man/figures/README-unnamed-chunk-2-1.png
@@ -27,9 +27,9 @@ c3978703d8f40f2679795335715e98f4 *man/figures/lifecycle-experimental.svg
 61059660eb073d93e00e8ee054237071 *src/Makevars
 61059660eb073d93e00e8ee054237071 *src/Makevars.win
 5de9a380cface7d35cac2ba7e5348b1f *src/RcppExports.cpp
-1b3c0e1c95fa3a83f81edaf04793fd82 *src/dbar_cpp.cpp
+da030f47bd4ccce386f38e4f721f4171 *src/dbar_cpp.cpp
 53a6153b7f1af5700d1adaf8fc720107 *tests/testthat.R
-5ae0954541f1785a2cf56004cf4c8d76 *tests/testthat/test-estimation.R
+a485394b6332043f25d3e572ad626436 *tests/testthat/test-estimation.R
 c8766bd43c61ac9c944c9248b2ef287b *tests/testthat/test-preparation.R
 7af46c1bee34b5d1fee49e03a98e323b *tests/testthat/test-util.R
-4bda1b0b594bd7c35140469ad246ee65 *tests/testthat/test-ycevo.R
+319860488f76f0032455c3f3e4692f6d *tests/testthat/test-ycevo.R

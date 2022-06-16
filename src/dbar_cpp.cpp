@@ -16,7 +16,7 @@ arma::mat calc_dbar_c(int nday, int ntupq, arma::mat day_idx, arma::mat tupq_idx
     // For each element in xgrid
     for(int j = 0; j < ntupq; ++j){
       Rcpp::checkUserInterrupt();
-      arma::rowvec seq_tupq;
+      arma::rowvec seq_tupq(2);
       int windowOffset = 0;
       if(tupq_idx.n_cols == 2){
         seq_tupq = tupq_idx.row(j);
@@ -78,8 +78,7 @@ arma::mat check_crspid_intersect (Rcpp::List cf_slist, arma::rowvec seq_tupq_x, 
   return intMatrix;
 }
 
-// Reweight weights for tau_p so the weights at where there is a cash flow add up to one
-arma::cube weightCF2(arma::vec qdate_idx, Rcpp::List cf_slist, arma::rowvec seq_tupq, arma::mat crspid_idx, arma::mat window, int i){
+int find_maxRows(arma::vec qdate_idx, arma::mat crspid_idx) {
   unsigned int maxRows = 0;
   for(int j = qdate_idx(0); j <= qdate_idx(qdate_idx.n_elem - 1); ++j){
     for(unsigned int k = 0; k < crspid_idx.n_rows; ++k){
@@ -91,6 +90,12 @@ arma::cube weightCF2(arma::vec qdate_idx, Rcpp::List cf_slist, arma::rowvec seq_
       }
     }
   }
+  return maxRows;
+}
+
+// Reweight weights for tau_p so the weights at where there is a cash flow add up to one
+arma::cube weightCF2(arma::vec qdate_idx, Rcpp::List cf_slist, arma::rowvec seq_tupq, arma::mat crspid_idx, arma::mat window, int i){
+  unsigned int maxRows = find_maxRows(qdate_idx, crspid_idx);
   // Rprintf("maxRows %i\n", maxRows);
   arma::cube cfTemp(maxRows, seq_tupq[1] - seq_tupq[0] + 1, qdate_idx.n_elem, arma::fill::zeros);
   
@@ -132,17 +137,8 @@ arma::cube weightCF2(arma::vec qdate_idx, Rcpp::List cf_slist, arma::rowvec seq_
 }
 
 arma::cube weightCF(arma::vec qdate_idx, Rcpp::List cf_slist, arma::rowvec seq_tupq, arma::mat crspid_idx, arma::mat window, int i){
-  unsigned int maxRows = 0;
-  for(int j = qdate_idx(0); j <= qdate_idx(qdate_idx.n_elem - 1); ++j){
-    for(unsigned int k = 0; k < crspid_idx.n_rows; ++k){
-      if(crspid_idx(k, j) == 0){
-        if(k > maxRows){
-          maxRows = k;
-        }
-        break;
-      }
-    }
-  }
+  unsigned int maxRows = find_maxRows(qdate_idx, crspid_idx);
+  
   arma::cube cfTemp(maxRows, seq_tupq[1] - seq_tupq[0] + 1, qdate_idx.n_elem, arma::fill::zeros);
   
   for(unsigned int j = 0; j < qdate_idx.n_elem; ++j){
@@ -195,6 +191,11 @@ double calc_hhat_once(int j, int k, arma::rowvec seq_day, arma::rowvec seq_tupq_
   }
   // Otherwise grab the relevant parts of qdate
   qdate_idx = qdate_idx.head(counter);
+  if(find_maxRows(qdate_idx, crspid_idx)==0) {
+    // Avoid runtime error in UBSAN check: reference binding to null pointer 
+    return 0;
+  }
+  
   // Weights x and q cash flows by the window function
   arma::cube cf_temp_x = weightCF(qdate_idx, cf_slist, seq_tupq_x, crspid_idx, ux_window, j);
   arma::cube cf_temp_q = weightCF2(qdate_idx, cf_slist, seq_tupq_q, crspid_idx, uq_window, k);
@@ -228,6 +229,7 @@ double calc_hhat_once(int j, int k, arma::rowvec seq_day, arma::rowvec seq_tupq_
     double sumCrossProduct = arma::accu(sumP.slice(m) % cf_temp_x.slice(m));
     hhat_num += sumCrossProduct * uu_window(qdate_idx(m));
   }
+  
   return hhat_num;
 }
 
@@ -242,7 +244,7 @@ arma::cube calc_hhat_num2_c(int nday, int ntupq_x, int ntupq_q, arma::mat day_id
     
     // For each element in xgrid tau
     for (int j = 0; j < ntupq_x; ++j) {
-      arma::rowvec seq_tupq_x;
+      arma::rowvec seq_tupq_x(2);
       int window_lower_x, window_upper_x;
       if(tupq_idx_x.n_cols == 2){
         seq_tupq_x = tupq_idx_x.row(j);
@@ -257,7 +259,7 @@ arma::cube calc_hhat_num2_c(int nday, int ntupq_x, int ntupq_q, arma::mat day_id
       // For each element in qgrid tau_p
       for (int k = 0; k < ntupq_q; ++k) {
         Rcpp::checkUserInterrupt();
-        arma::rowvec seq_tupq_q;
+        arma::rowvec seq_tupq_q(2);
         int window_lower_q, window_upper_q;
         if(tupq_idx_q.n_cols == 2){
           seq_tupq_q = tupq_idx_q.row(k);
@@ -270,6 +272,7 @@ arma::cube calc_hhat_num2_c(int nday, int ntupq_x, int ntupq_q, arma::mat day_id
         }
         hhat(j, k, i) = calc_hhat_once(j, k, seq_day, seq_tupq_x, seq_tupq_q, cf_slist,
              ux_window.cols(window_lower_x, window_upper_x), uq_window.cols(window_lower_q, window_upper_q), uu_window.col(i));
+        
       }
       
     }
