@@ -1,7 +1,7 @@
 Package: ycevo
 Type: Package
 Title: Nonparametric Estimation of the Yield Curve Evolution
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: 
     c(person(given = "Bonsoo",
              family = "Koo",
@@ -34,16 +34,15 @@ LazyData: true
 Imports: dplyr, magrittr, Matrix, Rcpp (>= 0.12.18), rlang, stats
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.1.2
-Suggests: testthat (>= 3.0.0), akima, knitr, plotly, rmarkdown,
-        tidyverse
+Suggests: testthat (>= 3.0.0), knitr, plotly, rmarkdown, tidyverse
 Language: en-AU
 Config/testthat/edition: 3
 NeedsCompilation: yes
-Packaged: 2022-06-15 14:33:56 UTC; yangy
+Packaged: 2022-06-28 08:02:34 UTC; yangy
 Author: Bonsoo Koo [aut],
   Nathaniel Tomasetti [aut],
   Kai-Yang Goh [aut],
   Yangzhuoran Fin Yang [aut, cre]
     (<https://orcid.org/0000-0002-1232-8017>)
 Repository: CRAN
-Date/Publication: 2022-06-16 06:20:02 UTC
+Date/Publication: 2022-06-28 08:20:02 UTC
