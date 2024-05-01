@@ -5,7 +5,7 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/bonsook/ycevo/workflows/R-CMD-check/badge.svg)](https://github.com/bonsook/ycevo/actions)
+[![R-CMD-check](https://github.com/bonsook/ycevo/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bonsook/ycevo/actions/workflows/R-CMD-check.yaml)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/ycevo)](https://CRAN.R-project.org/package=ycevo)
 [![license](https://img.shields.io/badge/license-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
@@ -13,14 +13,14 @@ status](https://www.r-pkg.org/badges/version/ycevo)](https://CRAN.R-project.org/
 <!-- badges: end -->
 
 The goal of `ycevo` is to provide means for the non-parametric
-estimation of the discount rate, and yield curve, of CRSP Bond Data.
+estimation of the discount function and yield curve of bonds.
 
 If you use any data or code from the `ycevo` package CRAN release in a
 publication, please use the following citation:
 
-> Bonsoo Koo, Nathaniel Tomasetti, Kai-Yang Goh and Yangzhuoran Fin Yang
-> (2022). ycevo: Non-Parametric Estimation of the Yield Curve Evolution.
-> R package version 0.1.0. <https://github.com/bonsook/ycevo>.
+> Bonsoo Koo, and Yangzhuoran Fin Yang (2022). ycevo: Non-Parametric
+> Estimation of the Yield Curve Evolution. R package version 0.2.0.
+> <https://CRAN.R-project.org/package=ycevo>.
 
 The package provides code used in Koo, La Vecchia, & Linton (2021).
 Please use the following citation if you use any result from the paper.
@@ -31,19 +31,16 @@ Please use the following citation if you use any result from the paper.
 
 ## Development cycle
 
-The package is in active development and will experience substantial
-changes.
+The package is in active development and it have been experiencing
+substantial changes. Since the existing forks have remained inactive for
+several years, significant modifications have been implemented through
+rebase. It is advisable for any existing forks to undergo the rebase
+process.
 
-The main functionality has been improved and adjusted in the past years.
-When we first prepared it for CRAN submission, we set the version to be
-1.0.0. Several years later when we finally have done it, we dialled it
-back to **0.1.0** in our realisation that the API is far from stable. It
-was not a good practice but it is better to do this sooner when it is
-not well publicised than to wait until more damages are made.
-
-Note this first public release is not backward compatible with any fork
-before 2022 with version 1.0.0. These forks should be “updated” to 0.1.0
-for a *correct* implementation.
+    git remote add upstream https://github.com/bonsook/ycevo.git
+    git fetch upstream
+    git rebase upstream/master
+    git push origin master --force
 
 ## Installation
 
@@ -66,15 +63,6 @@ devtools::install_github("bonsook/ycevo")
 
 ``` r
 library(ycevo)
-library(tidyverse)
-#> ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
-#> ✓ ggplot2 3.3.6     ✓ purrr   0.3.4
-#> ✓ tibble  3.1.7     ✓ dplyr   1.0.9
-#> ✓ tidyr   1.2.0     ✓ stringr 1.4.0
-#> ✓ readr   2.1.2     ✓ forcats 0.5.1
-#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-#> x dplyr::filter() masks stats::filter()
-#> x dplyr::lag()    masks stats::lag()
 library(lubridate)
 #> 
 #> Attaching package: 'lubridate'
@@ -82,71 +70,92 @@ library(lubridate)
 #> 
 #>     date, intersect, setdiff, union
 
-# Simulate 4 bonds issued at 2020-01-01
-# with maturity 180, 360, 540, 720 days
-# Apart from the first one, 
-# each has coupon 2, 
-# of which half is paid every 180 days.
-# The yield curve is sumulated fron `get_yield_at_vec`
-# Quotation date is also at 2020-01-01
-exp_data <- tibble(
-  qdate = ymd("2020-01-01"), 
-  crspid = rep(1:4, 1:4), 
-  pdint = c(100, 1, 101, 1, 1, 101, 1, 1, 1, 101),
-  tupq = unlist(sapply(1:4, seq_len)) * 180, 
-  accint = 0
-) %>% 
-  mutate(discount = exp(-tupq/365 * get_yield_at_vec(0, tupq/365))) %>% 
-  group_by(crspid) %>% 
-  mutate(mid.price = sum(pdint * discount)) %>% 
-  ungroup()
-
-# Only one quotation so time grid is set to 1
-xgrid <- 1 
-# Discount function is evaluated at time to maturity of each payment in the data
-tau <- unique(exp_data$tupq/365) 
-
-# Estimated yield and discount
-yield <- ycevo(
-  exp_data, 
-  xgrid = xgrid,
-  tau = tau
-)
-yield 
-#>    discount xgrid       tau      yield
-#> 1 0.9801882     1 0.4931507 0.04057724
-#> 2 0.9654370     1 0.9863014 0.03566294
-#> 3 0.9515561     1 1.4794521 0.03356421
-#> 4 0.9365043     1 1.9726027 0.03325614
-
-# True yield
-get_yield_at_vec(0, tau)
-#> [1] 0.04057724 0.03566294 0.03356421 0.03325614
-
-# Plot of yield curve
-yield %>%
-  mutate(true_yield = get_yield_at_vec(0, tau)) %>% 
-  pivot_longer(c(yield, true_yield)) %>% 
-  mutate(xgrid = round(xgrid, 2)) %>%
-  ggplot() + 
-  geom_line(aes(x = tau, y = value)) +
-  facet_wrap(name~xgrid, labeller = label_both)
+## Simulate
+set.seed(1)
+bonds <- ycevo_data()
+bonds
+#> # A tibble: 388,795 × 5
+#>    qdate      id              price  tupq  pdint
+#>    <date>     <fct>           <dbl> <dbl>  <dbl>
+#>  1 2023-01-02 20230106.106643  103.     4 103.  
+#>  2 2023-01-02 20230721.107768  106.    19   3.88
+#>  3 2023-01-02 20230721.107768  106.   200 104.  
+#>  4 2023-01-02 20240203.106386  106.    32   3.19
+#>  5 2023-01-02 20240203.106386  106.   213   3.19
+#>  6 2023-01-02 20240203.106386  106.   397 103.  
+#>  7 2023-01-02 20240817.109392  113.    46   4.70
+#>  8 2023-01-02 20240817.109392  113.   227   4.70
+#>  9 2023-01-02 20240817.109392  113.   411   4.70
+#> 10 2023-01-02 20240817.109392  113.   593 105.  
+#> # ℹ 388,785 more rows
 ```
-
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="100%" />
 
 ``` r
-# Plot of discount function
-yield %>%
-  mutate(true_discount = exp(-tau * get_yield_at_vec(0, tau))) %>% 
-  pivot_longer(c(discount, true_discount)) %>% 
-  mutate(xgrid = round(xgrid, 2)) %>%
-  ggplot() + 
-  geom_line(aes(x = tau, y = value)) +
-  facet_wrap(name~xgrid, labeller = label_both)
+## Estimate at specified time points
+x <- seq(ymd("2023-03-01"), ymd("2023-08-01"), by = "1 month")
+res <- ycevo(bonds, x)
+## Supports parallel processing and progress bar
+# future::plan(future::multisession)
+# res <- progressr::with_progress(ycevo(bonds, x))
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-2.png" width="100%" />
+``` r
+res
+#> # A tibble: 6 × 2
+#>   qdate      .est             
+#> * <date>     <list>           
+#> 1 2023-03-01 <tibble [73 × 3]>
+#> 2 2023-04-01 <tibble [73 × 3]>
+#> 3 2023-05-01 <tibble [73 × 3]>
+#> 4 2023-06-01 <tibble [73 × 3]>
+#> 5 2023-07-01 <tibble [73 × 3]>
+#> 6 2023-08-01 <tibble [73 × 3]>
+```
+
+``` r
+## Predict
+augment(res)
+#> # A tibble: 438 × 4
+#>    qdate         tau .discount .yield
+#>    <date>      <dbl>     <dbl>  <dbl>
+#>  1 2023-03-01 0.0822     0.986 0.169 
+#>  2 2023-03-01 0.164      0.985 0.0912
+#>  3 2023-03-01 0.247      0.984 0.0654
+#>  4 2023-03-01 0.329      0.983 0.0528
+#>  5 2023-03-01 0.411      0.982 0.0454
+#>  6 2023-03-01 0.493      0.980 0.0407
+#>  7 2023-03-01 0.658      0.977 0.0351
+#>  8 2023-03-01 0.822      0.974 0.0321
+#>  9 2023-03-01 0.986      0.970 0.0305
+#> 10 2023-03-01 1.15       0.967 0.0296
+#> # ℹ 428 more rows
+
+## Plot
+autoplot(res)
+```
+
+<img src="man/figures/README-unnamed-chunk-6-1.png" width="100%" />
+
+``` r
+## Compare to the true yield curve
+curve_true <- list()
+for(i in seq_along(x)) {
+  curve_true[[i]] <- tibble(
+    tau=1:20, 
+    qdate = x[[i]],
+    .yield = get_yield_at((x[[i]] - ymd("2023-01-01"))/365, tau), 
+    .discount = exp(-tau * .yield))
+}
+curve_true <- bind_rows(curve_true)
+curve_true <- pivot_longer(
+  curve_true, 
+  c(.discount, .yield), 
+  names_to = ".est", 
+  values_to = ".value")
+
+autoplot(res) +
+  geom_line(data = curve_true, linetype = "dashed")
+```
 
 ## License
 
