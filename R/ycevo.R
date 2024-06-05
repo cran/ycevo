@@ -174,7 +174,6 @@ ycevo <- function(data,
     function(span_x) span2h(span_x, length(unique(data$qdate))),
     FUN.VALUE = numeric(1))
   assert_length(hx, len = c(1, length(x)))
-  hx <- check_hx(xgrid, hx, data)
 
   if(length(hx) == 1) {
     hx <- rep(hx, length(xgrid))
@@ -187,10 +186,10 @@ ycevo <- function(data,
   }
   # ht
   if(is.null(ht))
-    ht <- find_bindwidth_from_tau(tau)
+    ht <- find_bandwidth_from_tau(tau)
   # ht
   if(is.null(htp))
-    htp <- find_bindwidth_from_tau(tau_p)
+    htp <- find_bandwidth_from_tau(tau_p)
 
   assert_length(ht, len = c(1, length(tau)))
   assert_length(htp, len = c(1, length(tau_p)))
@@ -268,20 +267,7 @@ ycevo <- function(data,
   new_ycevo(res)
 }
 
-check_hx <- function(xgrid, hx, data){
-
-  if(isTRUE(all.equal(hx, 1/length(xgrid)))) {
-    num_qdate <- length(unique(data$qdate))
-    mat_weights_qdatetime <- get_weights(xgrid, hx, len = num_qdate)
-    if(any(colSums(mat_weights_qdatetime) == 0)) {
-      recommend <- seq_along(xgrid)/length(xgrid)
-      stop("Inappropriate xgrid. Recommend to choose value(s) from: ", paste(recommend, collapse = ", "))
-    }
-  }
-
-  hx
-}
-
+# Default sequence of tau
 seq_tau <- function(max_tau) {
   tau <-  c(seq(30, 6 * 30, 30),  # Monthly up to six months
             seq(240, 2 * 365, 60),  # Two months up to two years
@@ -292,7 +278,9 @@ seq_tau <- function(max_tau) {
   tau[tau < max_tau]
 }
 
-find_bindwidth_from_tau <- function(tau){
+# Default bandwidth for tau and tau_p
+# The larger distance from neighbours
+find_bandwidth_from_tau <- function(tau){
   laggap <- tau - dplyr::lag(tau)
   leadgap <- dplyr::lead(tau) - tau
   vapply(
@@ -300,8 +288,6 @@ find_bindwidth_from_tau <- function(tau){
     function(x) max(laggap[x], leadgap[x], na.rm = TRUE),
     numeric(1L))
 }
-
-
 
 
 new_ycevo <- function(x) {
