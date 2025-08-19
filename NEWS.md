@@ -1,3 +1,10 @@
+# ycevo 0.3.0
+
+* Add `predict.ycevo()` wrapper of `augment.ycevo()`
+* Add base plot method `plot.ycevo()`
+* Minor CRAN check fix.
+
+
 # ycevo 0.2.1
 
 * Minor bug fixes

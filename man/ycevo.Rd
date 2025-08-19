@@ -63,7 +63,7 @@ years. See \code{Details}.}
 \item{htp}{Numeric vector. Bandwidth parameters corresponding to each of
 auxiliary time-to-maturities \code{tau_p}. See \code{Details}.}
 
-\item{cols}{<\code{\link[=dplyr_tidy_select]{tidy-select}}> A named list or vector of
+\item{cols}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> A named list or vector of
 alternative names of required variables, following the \code{new_name = old_name} syntax of the \code{\link[dplyr:rename]{dplyr::rename()}}, where the \code{new_nam} takes one of
 the five column names required in \code{data}. This enables the user to provide
 \code{data} with columns named differently from required.}
@@ -109,8 +109,6 @@ time-to-maturity, and \code{.yield} for the estimated yield curve.}
 }
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
-
 Nonparametric estimation of discount functions and yield curves at given
 dates, time-to-maturities, and one additional covariate, usually interest
 rate.

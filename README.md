@@ -18,8 +18,8 @@ estimation of the discount function and yield curve of bonds.
 If you use any data or code from the `ycevo` package CRAN release in a
 publication, please use the following citation:
 
-> Bonsoo Koo, and Yangzhuoran Fin Yang (2024). ycevo: Non-Parametric
-> Estimation of the Yield Curve Evolution. R package version 0.2.1.
+> Bonsoo Koo, and Yangzhuoran Fin Yang (2025). ycevo: Non-Parametric
+> Estimation of the Yield Curve Evolution. R package version 0.3.0.
 > <https://CRAN.R-project.org/package=ycevo>.
 
 The package provides code used in Koo, La Vecchia, & Linton (2021).
@@ -139,19 +139,21 @@ autoplot(res)
 ``` r
 ## Compare to the true yield curve
 curve_true <- list()
-for(i in seq_along(x)) {
+for (i in seq_along(x)) {
   curve_true[[i]] <- tibble(
-    tau=1:20, 
+    tau = 1:20,
     qdate = x[[i]],
-    .yield = get_yield_at((x[[i]] - ymd("2023-01-01"))/365, tau), 
-    .discount = exp(-tau * .yield))
+    .yield = get_yield_at((x[[i]] - ymd("2023-01-01")) / 365, tau),
+    .discount = exp(-tau * .yield)
+  )
 }
 curve_true <- bind_rows(curve_true)
 curve_true <- pivot_longer(
-  curve_true, 
-  c(.discount, .yield), 
-  names_to = ".est", 
-  values_to = ".value")
+  curve_true,
+  c(.discount, .yield),
+  names_to = ".est",
+  values_to = ".value"
+)
 
 autoplot(res) +
   geom_line(data = curve_true, linetype = "dashed")
